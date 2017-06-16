@@ -62,6 +62,8 @@ ISR(TIMER1_OVF_vect ) {
 int sendAngle= 0;
 QueueHandle_t xQueue;
 
+
+static void TaskSoundControl(void *pvParameters);
 static void TaskBlinkRedLED(void *pvParameters); // Main Arduino Mega 2560, Freetronics EtherMega (Red) LED
 static void TaskServoControl(void *pvParameters); // Main Arduino Mega 2560, Freetronics EtherMega (Red) LED
 
@@ -97,6 +99,47 @@ int main() {
 	return 0;
 }
 
+static void TaskSoundControl(void *pvParameters) {
+	(void) pvParameters;
+
+    TickType_t xLastWakeTime;
+	/* The xLastWakeTime variable needs to be initialised with the current tick
+	count.  Note that this is the only time we access this variable.  From this
+	point on xLastWakeTime is managed automatically by the vTaskDelayUntil()
+	API function. */
+	xLastWakeTime = xTaskGetTickCount();
+
+	unsigned int ad_value;
+	// Enable ADC
+	ADCSRA = (1 << ADEN) | (1 << ADPS2) | (1 << ADPS0);
+
+	// Select ADC channel
+	ADMUX = (1 << ADLAR) | (1 << REFS0);
+	// Analog Pin A0 is default.
+
+	while(1) {
+		//Start single conversion
+		ADCSRA |= (1 << ADSC);
+
+		// wait for the conversion to complete
+		while(!(ADCSRA & (1 << ADIF)));
+		adc_value = ADC;
+		if (adc_value < 512) {
+			// pass
+		} else {
+			//pass
+		}
+
+		//clear ADIF
+		ADCSRA |= (1 << ADIF);
+	}
+
+
+	// Analog pin 15: ADC15 - PCINT23
+
+
+}
+
 static void TaskBlinkRedLED(void *pvParameters) // Main Red LED Flash
 {
     (void) pvParameters;
@@ -127,6 +170,8 @@ static void TaskBlinkRedLED(void *pvParameters) // Main Red LED Flash
 		xSerialxPrintf_P( &xSerialPort, PSTR("RedLED HighWater @ %u\r\n"), uxTaskGetStackHighWaterMark(NULL));
     }
 }
+
+
 
 static void TaskServoControl(void *pvParameters) // Main Red LED Flash
 {
